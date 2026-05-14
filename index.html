@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="NeuroPulse — a cinematic cyberpunk AI command interface." />
+  <title>NeuroPulse | Cinematic AI Interface</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Animated particle field is drawn on this canvas for a living, cinematic background. -->
+  <canvas id="particle-canvas" aria-hidden="true"></canvas>
+
+  <div class="ambient ambient-cyan" aria-hidden="true"></div>
+  <div class="ambient ambient-magenta" aria-hidden="true"></div>
+  <div class="scanlines" aria-hidden="true"></div>
+
+  <main class="shell">
+    <nav class="topbar glass-panel" aria-label="Primary navigation">
+      <a class="brand" href="#hero" aria-label="NeuroPulse home">
+        <span class="brand-mark">NP</span>
+        <span>NeuroPulse</span>
+      </a>
+      <div class="nav-links">
+        <a href="#monitor">Monitor</a>
+        <a href="#visualizer">Visualizer</a>
+        <a href="#protocols">Protocols</a>
+      </div>
+      <button class="sound-toggle" id="soundToggle" type="button" aria-pressed="false">
+        <span class="sound-dot"></span>
+        Sound FX
+      </button>
+    </nav>
+
+    <section id="hero" class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">NEXUS OS // AI SENTIENCE LAYER</p>
+        <h1><span id="typewriter" aria-label="Welcome back, Bintang."></span><span class="cursor" aria-hidden="true"></span></h1>
+        <p class="hero-text">
+          A premium command surface tuned for neural telemetry, quantum resonance, and cinematic machine intelligence.
+        </p>
+        <div class="hero-actions">
+          <button class="primary-action magnetic" type="button" data-spark="true">Initialize Pulse</button>
+          <button class="secondary-action magnetic" type="button" id="surpriseBtn">Reveal Anomaly</button>
+        </div>
+      </div>
+
+      <aside class="ai-orb-card glass-panel" aria-label="AI assistant orb status">
+        <div class="orb-wrap" id="orbWrap">
+          <!-- The assistant orb follows the pointer through CSS variables updated in JavaScript. -->
+          <div class="assistant-orb" id="assistantOrb">
+            <span class="orb-core"></span>
+            <span class="orb-ring ring-one"></span>
+            <span class="orb-ring ring-two"></span>
+            <span class="orb-ring ring-three"></span>
+          </div>
+        </div>
+        <div class="orb-meta">
+          <span>AI Companion</span>
+          <strong id="orbMood">Curious</strong>
+        </div>
+      </aside>
+    </section>
+
+    <section id="monitor" class="dashboard" aria-label="Real-time system monitor">
+      <div class="section-heading">
+        <p class="eyebrow">LIVE TELEMETRY</p>
+        <h2>Fake real-time system monitor</h2>
+      </div>
+
+      <div class="card-grid">
+        <article class="metric-card glass-panel" data-metric="cpu">
+          <div class="card-topline"><span>CPU</span><strong id="cpuValue">42%</strong></div>
+          <div class="meter"><span id="cpuBar"></span></div>
+          <p>Adaptive silicon load balancing across the command matrix.</p>
+        </article>
+        <article class="metric-card glass-panel" data-metric="sync">
+          <div class="card-topline"><span>Neural Sync</span><strong id="syncValue">88%</strong></div>
+          <div class="meter"><span id="syncBar"></span></div>
+          <p>Human-machine handshake stabilized with low-latency intent mapping.</p>
+        </article>
+        <article class="metric-card glass-panel" data-metric="quantum">
+          <div class="card-topline"><span>Quantum Signal</span><strong id="quantumValue">61%</strong></div>
+          <div class="meter"><span id="quantumBar"></span></div>
+          <p>Entangled carrier stream pulsing through the neon uplink.</p>
+        </article>
+        <article class="metric-card glass-panel" data-metric="energy">
+          <div class="card-topline"><span>Energy Flow</span><strong id="energyValue">74%</strong></div>
+          <div class="meter"><span id="energyBar"></span></div>
+          <p>Bio-electric throughput calibrated for sustained interface glow.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="visualizer" class="visualizer glass-panel" aria-label="Music visualizer">
+      <div>
+        <p class="eyebrow">AUDIO SPECTRUM</p>
+        <h2>Music visualizer</h2>
+        <p>Tap the panel or enable sound effects to let the synthetic equalizer breathe with the interface.</p>
+      </div>
+      <div class="bars" id="bars" aria-hidden="true"></div>
+    </section>
+
+    <section id="protocols" class="protocols">
+      <article class="protocol-card glass-panel magnetic">
+        <span class="protocol-index">01</span>
+        <h3>Dream Cache</h3>
+        <p>Predictive memory panes shimmer into view before you need them.</p>
+      </article>
+      <article class="protocol-card glass-panel magnetic">
+        <span class="protocol-index">02</span>
+        <h3>Ghost Routing</h3>
+        <p>Signals reroute through invisible corridors whenever entropy spikes.</p>
+      </article>
+      <article class="protocol-card glass-panel magnetic">
+        <span class="protocol-index">03</span>
+        <h3>Pulse Bloom</h3>
+        <p>The whole interface blooms when it detects a hidden anomaly.</p>
+      </article>
+    </section>
+  </main>
+
+  <div class="easter-egg" id="easterEgg" role="status" aria-live="polite"></div>
+  <div class="anomaly" id="anomaly" aria-hidden="true">
+    <div class="anomaly-ring"></div>
+    <p>NEUROPULSE HAS OPENED A MEMORY GATE</p>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
