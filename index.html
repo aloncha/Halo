@@ -5,10 +5,632 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="NeuroPulse — a cinematic cyberpunk AI command interface." />
   <title>NeuroPulse | Cinematic AI Interface</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css" />
+  <style>
+:root {
+  --bg: #03040d;
+  --panel: rgba(12, 18, 38, 0.54);
+  --panel-strong: rgba(18, 28, 58, 0.72);
+  --cyan: #24f7ff;
+  --cyan-soft: rgba(36, 247, 255, 0.28);
+  --magenta: #ff2bd6;
+  --violet: #8c5cff;
+  --lime: #baff39;
+  --text: #eef7ff;
+  --muted: #93a8c6;
+  --border: rgba(255, 255, 255, 0.16);
+  --shadow: 0 28px 90px rgba(0, 0, 0, 0.48);
+  --mx: 0px;
+  --my: 0px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+  color: var(--text);
+  background:
+    radial-gradient(circle at 15% 12%, rgba(36, 247, 255, 0.16), transparent 32rem),
+    radial-gradient(circle at 88% 10%, rgba(255, 43, 214, 0.14), transparent 30rem),
+    linear-gradient(135deg, #03040d 0%, #08091a 45%, #110822 100%);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  font: inherit;
+}
+
+#particle-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: -4;
+}
+
+.ambient {
+  position: fixed;
+  width: 42vmax;
+  height: 42vmax;
+  border-radius: 999px;
+  filter: blur(80px);
+  opacity: 0.36;
+  z-index: -3;
+  animation: drift 12s ease-in-out infinite alternate;
+}
+
+.ambient-cyan {
+  left: -16vmax;
+  top: 18%;
+  background: var(--cyan);
+}
+
+.ambient-magenta {
+  right: -18vmax;
+  bottom: 2%;
+  background: var(--magenta);
+  animation-delay: -4s;
+}
+
+.scanlines {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  opacity: 0.12;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 100% 4px;
+  mix-blend-mode: overlay;
+}
+
+.shell {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 22px 0 64px;
+}
+
+.glass-panel {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.035)), var(--panel);
+  box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(22px) saturate(145%);
+}
+
+.glass-panel::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  background: radial-gradient(circle at var(--mx) var(--my), rgba(255, 255, 255, 0.24), transparent 11rem);
+  opacity: 0;
+  transition: opacity 260ms ease;
+  pointer-events: none;
+}
+
+.glass-panel:hover::before {
+  opacity: 1;
+}
+
+.topbar {
+  position: sticky;
+  top: 16px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 12px 14px;
+  border-radius: 24px;
+}
+
+.brand,
+.nav-links a {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.brand-mark {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 14px;
+  color: #06111c;
+  background: linear-gradient(135deg, var(--cyan), var(--magenta));
+  box-shadow: 0 0 28px var(--cyan-soft);
+}
+
+.nav-links {
+  display: flex;
+  gap: 20px;
+}
+
+.nav-links a {
+  color: var(--muted);
+  font-size: 0.9rem;
+  transition: color 220ms ease, text-shadow 220ms ease;
+}
+
+.nav-links a:hover {
+  color: var(--cyan);
+  text-shadow: 0 0 18px var(--cyan);
+}
+
+.sound-toggle,
+.primary-action,
+.secondary-action {
+  cursor: pointer;
+  border: 0;
+  color: var(--text);
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+}
+
+.sound-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 13px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.sound-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--magenta);
+  box-shadow: 0 0 16px var(--magenta);
+}
+
+.sound-toggle[aria-pressed="true"] .sound-dot {
+  background: var(--lime);
+  box-shadow: 0 0 18px var(--lime);
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 390px;
+  gap: 28px;
+  align-items: center;
+  min-height: 650px;
+}
+
+.eyebrow {
+  margin: 0 0 12px;
+  color: var(--cyan);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin-top: 0;
+}
+
+h1,
+h2,
+h3 {
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  letter-spacing: -0.06em;
+}
+
+h1 {
+  min-height: 1.92em;
+  margin-bottom: 20px;
+  font-size: clamp(3.4rem, 8vw, 7.6rem);
+  line-height: 0.96;
+  text-shadow: 0 0 44px rgba(36, 247, 255, 0.34);
+}
+
+.cursor {
+  display: inline-block;
+  width: 0.08em;
+  height: 0.82em;
+  margin-left: 0.08em;
+  background: var(--cyan);
+  box-shadow: 0 0 18px var(--cyan);
+  animation: blink 850ms steps(1) infinite;
+}
+
+.hero-text {
+  max-width: 640px;
+  color: var(--muted);
+  font-size: clamp(1rem, 2vw, 1.24rem);
+  line-height: 1.7;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 30px;
+}
+
+.primary-action,
+.secondary-action {
+  padding: 14px 20px;
+  border-radius: 999px;
+}
+
+.primary-action {
+  background: linear-gradient(135deg, var(--cyan), var(--violet) 48%, var(--magenta));
+  box-shadow: 0 0 34px rgba(36, 247, 255, 0.28), 0 18px 44px rgba(255, 43, 214, 0.18);
+}
+
+.secondary-action {
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.primary-action:hover,
+.secondary-action:hover,
+.sound-toggle:hover {
+  transform: translateY(-2px);
+}
+
+.ai-orb-card {
+  min-height: 490px;
+  display: grid;
+  place-items: center;
+  padding: 28px;
+  border-radius: 34px;
+}
+
+.orb-wrap {
+  position: relative;
+  width: min(290px, 74vw);
+  aspect-ratio: 1;
+  transform: perspective(900px) rotateX(calc(var(--orb-y, 0) * -8deg)) rotateY(calc(var(--orb-x, 0) * 8deg));
+  transition: transform 120ms ease-out;
+}
+
+.assistant-orb,
+.orb-core,
+.orb-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+}
+
+.assistant-orb {
+  filter: drop-shadow(0 0 38px rgba(36, 247, 255, 0.58));
+}
+
+.orb-core {
+  inset: 24%;
+  background:
+    radial-gradient(circle at 35% 28%, #fff, rgba(255, 255, 255, 0.05) 17%),
+    radial-gradient(circle at 50% 60%, var(--cyan), rgba(140, 92, 255, 0.92) 45%, rgba(255, 43, 214, 0.64) 72%, transparent 73%);
+  box-shadow: inset -18px -24px 46px rgba(3, 4, 13, 0.42), 0 0 60px var(--cyan-soft);
+  animation: orbPulse 2.7s ease-in-out infinite;
+}
+
+.orb-ring {
+  border: 1px solid rgba(36, 247, 255, 0.5);
+  box-shadow: inset 0 0 26px rgba(36, 247, 255, 0.12), 0 0 24px rgba(36, 247, 255, 0.22);
+}
+
+.ring-one { animation: spin 8s linear infinite; clip-path: polygon(0 45%, 100% 22%, 100% 60%, 0 77%); }
+.ring-two { inset: 8%; animation: spin 11s linear infinite reverse; clip-path: polygon(18% 0, 86% 0, 72% 100%, 5% 100%); }
+.ring-three { inset: 17%; animation: spin 6s linear infinite; border-color: rgba(255, 43, 214, 0.52); }
+
+.orb-meta {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+}
+
+.orb-meta strong {
+  color: var(--cyan);
+}
+
+.section-heading {
+  margin-bottom: 20px;
+}
+
+.section-heading h2,
+.visualizer h2 {
+  margin-bottom: 0;
+  font-size: clamp(2rem, 4vw, 3.2rem);
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+
+.metric-card,
+.protocol-card,
+.visualizer {
+  border-radius: 28px;
+  transition: transform 260ms ease, border-color 260ms ease, box-shadow 260ms ease;
+}
+
+.metric-card {
+  padding: 22px;
+}
+
+.metric-card:hover,
+.protocol-card:hover,
+.visualizer:hover {
+  transform: translateY(-8px) scale(1.01);
+  border-color: rgba(36, 247, 255, 0.44);
+  box-shadow: 0 30px 92px rgba(36, 247, 255, 0.14), var(--shadow);
+}
+
+.card-topline {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-weight: 800;
+}
+
+.card-topline span {
+  color: var(--muted);
+}
+
+.card-topline strong {
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  color: var(--text);
+}
+
+.meter {
+  height: 10px;
+  margin: 22px 0 18px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.meter span {
+  display: block;
+  height: 100%;
+  width: 50%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--cyan), var(--violet), var(--magenta));
+  box-shadow: 0 0 20px var(--cyan-soft);
+  transition: width 700ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.metric-card p,
+.protocol-card p,
+.visualizer p {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.visualizer {
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  gap: 26px;
+  align-items: end;
+  margin-top: 24px;
+  padding: 26px;
+}
+
+.bars {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  height: 220px;
+  gap: 9px;
+}
+
+.bar {
+  flex: 1;
+  min-width: 5px;
+  height: 24%;
+  border-radius: 999px 999px 10px 10px;
+  background: linear-gradient(180deg, #fff, var(--cyan) 28%, var(--violet) 68%, var(--magenta));
+  box-shadow: 0 0 24px rgba(36, 247, 255, 0.34);
+  transition: height 170ms ease;
+}
+
+.protocols {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.protocol-card {
+  padding: 24px;
+}
+
+.protocol-index {
+  color: var(--magenta);
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+}
+
+.protocol-card h3 {
+  margin: 18px 0 10px;
+  font-size: 1.45rem;
+}
+
+.easter-egg {
+  position: fixed;
+  left: 50%;
+  bottom: 28px;
+  z-index: 30;
+  width: min(420px, calc(100% - 32px));
+  padding: 14px 18px;
+  border: 1px solid rgba(186, 255, 57, 0.44);
+  border-radius: 18px;
+  color: var(--lime);
+  background: rgba(7, 17, 18, 0.78);
+  box-shadow: 0 0 36px rgba(186, 255, 57, 0.2);
+  text-align: center;
+  transform: translate(-50%, 150%);
+  opacity: 0;
+  backdrop-filter: blur(18px);
+  transition: transform 420ms ease, opacity 420ms ease;
+}
+
+.easter-egg.show {
+  transform: translate(-50%, 0);
+  opacity: 1;
+}
+
+.anomaly {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 25;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  background: radial-gradient(circle, rgba(36, 247, 255, 0.16), rgba(255, 43, 214, 0.1), transparent 58%);
+  transition: opacity 700ms ease;
+}
+
+.anomaly.active {
+  opacity: 1;
+}
+
+.anomaly-ring {
+  position: absolute;
+  width: min(72vmin, 620px);
+  aspect-ratio: 1;
+  border: 1px solid rgba(36, 247, 255, 0.7);
+  border-radius: 50%;
+  box-shadow: 0 0 80px rgba(36, 247, 255, 0.36), inset 0 0 80px rgba(255, 43, 214, 0.18);
+  animation: gate 1.5s ease-in-out infinite;
+}
+
+.anomaly p {
+  padding: 18px 24px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 999px;
+  background: rgba(3, 4, 13, 0.72);
+  color: #fff;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-align: center;
+  text-shadow: 0 0 18px var(--cyan);
+}
+
+body.anomaly-mode .glass-panel {
+  animation: chroma 620ms ease-in-out 3;
+}
+
+@keyframes drift {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to { transform: translate3d(7vw, -4vh, 0) scale(1.12); }
+}
+
+@keyframes blink {
+  50% { opacity: 0; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes orbPulse {
+  50% { transform: scale(1.08); filter: hue-rotate(32deg); }
+}
+
+@keyframes gate {
+  50% { transform: scale(1.08) rotate(22deg); }
+}
+
+@keyframes chroma {
+  25% { filter: hue-rotate(70deg) saturate(1.4); transform: translateX(2px); }
+  50% { filter: hue-rotate(-70deg) saturate(1.7); transform: translateX(-2px); }
+}
+
+@media (max-width: 920px) {
+  .hero,
+  .visualizer {
+    grid-template-columns: 1fr;
+  }
+
+  .hero {
+    min-height: auto;
+    padding: 82px 0 24px;
+  }
+
+  .card-grid,
+  .protocols {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 680px) {
+  .shell {
+    width: min(100% - 22px, 1180px);
+    padding-top: 10px;
+  }
+
+  .topbar {
+    align-items: stretch;
+    flex-direction: column;
+    position: relative;
+    top: 0;
+  }
+
+  .nav-links {
+    justify-content: space-between;
+  }
+
+  .sound-toggle {
+    justify-content: center;
+  }
+
+  h1 {
+    font-size: clamp(3rem, 16vw, 4.8rem);
+  }
+
+  .card-grid,
+  .protocols {
+    grid-template-columns: 1fr;
+  }
+
+  .ai-orb-card {
+    min-height: 380px;
+  }
+
+  .visualizer {
+    padding: 20px;
+  }
+
+  .bars {
+    height: 160px;
+    gap: 5px;
+  }
+}
+
+  </style>
 </head>
 <body>
   <!-- Animated particle field is drawn on this canvas for a living, cinematic background. -->
@@ -129,6 +751,266 @@
     <p>NEUROPULSE HAS OPENED A MEMORY GATE</p>
   </div>
 
-  <script src="script.js"></script>
+  <script>
+const canvas = document.querySelector('#particle-canvas');
+const ctx = canvas.getContext('2d');
+const typewriter = document.querySelector('#typewriter');
+const orbWrap = document.querySelector('#orbWrap');
+const orbMood = document.querySelector('#orbMood');
+const soundToggle = document.querySelector('#soundToggle');
+const easterEgg = document.querySelector('#easterEgg');
+const anomaly = document.querySelector('#anomaly');
+const surpriseBtn = document.querySelector('#surpriseBtn');
+const bars = document.querySelector('#bars');
+
+const phrase = 'Welcome back, Bintang.';
+const metrics = {
+  cpu: { value: document.querySelector('#cpuValue'), bar: document.querySelector('#cpuBar'), min: 24, max: 92 },
+  sync: { value: document.querySelector('#syncValue'), bar: document.querySelector('#syncBar'), min: 71, max: 99 },
+  quantum: { value: document.querySelector('#quantumValue'), bar: document.querySelector('#quantumBar'), min: 38, max: 89 },
+  energy: { value: document.querySelector('#energyValue'), bar: document.querySelector('#energyBar'), min: 46, max: 96 },
+};
+const eggMessages = [
+  'Hidden packet intercepted: BINTANG PRIME // access granted.',
+  'Ghost key detected. The orb is now listening.',
+  'Easter egg unlocked: press N + P together for a memory gate.',
+  'Neural confetti deployed across the quantum bus.',
+  'Secret codec awakened. Reality shimmer increased by 18%.'
+];
+
+let particles = [];
+let soundEnabled = false;
+let audioContext;
+let heldKeys = new Set();
+let mouse = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth * window.devicePixelRatio;
+  canvas.height = window.innerHeight * window.devicePixelRatio;
+  ctx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+  createParticles();
+}
+
+function createParticles() {
+  const count = Math.min(115, Math.floor(window.innerWidth / 12));
+  particles = Array.from({ length: count }, () => ({
+    x: Math.random() * window.innerWidth,
+    y: Math.random() * window.innerHeight,
+    radius: Math.random() * 2.2 + 0.4,
+    speedX: (Math.random() - 0.5) * 0.45,
+    speedY: (Math.random() - 0.5) * 0.45,
+    hue: Math.random() > 0.5 ? 185 : 306,
+  }));
+}
+
+function drawParticles() {
+  ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+  particles.forEach((particle, index) => {
+    const dx = mouse.x - particle.x;
+    const dy = mouse.y - particle.y;
+    const distance = Math.hypot(dx, dy);
+
+    // Nearby particles subtly repel from the pointer to make the background feel alive.
+    if (distance < 130) {
+      particle.x -= dx * 0.006;
+      particle.y -= dy * 0.006;
+    }
+
+    particle.x += particle.speedX;
+    particle.y += particle.speedY;
+
+    if (particle.x < -20) particle.x = window.innerWidth + 20;
+    if (particle.x > window.innerWidth + 20) particle.x = -20;
+    if (particle.y < -20) particle.y = window.innerHeight + 20;
+    if (particle.y > window.innerHeight + 20) particle.y = -20;
+
+    ctx.beginPath();
+    ctx.fillStyle = `hsla(${particle.hue}, 100%, 65%, 0.72)`;
+    ctx.shadowBlur = 18;
+    ctx.shadowColor = `hsla(${particle.hue}, 100%, 62%, 0.8)`;
+    ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+    ctx.fill();
+
+    for (let next = index + 1; next < particles.length; next += 1) {
+      const other = particles[next];
+      const gap = Math.hypot(particle.x - other.x, particle.y - other.y);
+      if (gap < 112) {
+        ctx.beginPath();
+        ctx.strokeStyle = `rgba(36, 247, 255, ${0.11 - gap / 1300})`;
+        ctx.lineWidth = 1;
+        ctx.moveTo(particle.x, particle.y);
+        ctx.lineTo(other.x, other.y);
+        ctx.stroke();
+      }
+    }
+  });
+
+  requestAnimationFrame(drawParticles);
+}
+
+function runTypewriter(index = 0) {
+  typewriter.textContent = phrase.slice(0, index);
+  if (index <= phrase.length) {
+    setTimeout(() => runTypewriter(index + 1), index < 9 ? 80 : 45);
+  }
+}
+
+function randomBetween(min, max) {
+  return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
+function updateMetrics() {
+  Object.values(metrics).forEach((metric) => {
+    const value = randomBetween(metric.min, metric.max);
+    metric.value.textContent = `${value}%`;
+    metric.bar.style.width = `${value}%`;
+  });
+}
+
+function buildVisualizer() {
+  for (let index = 0; index < 34; index += 1) {
+    const bar = document.createElement('span');
+    bar.className = 'bar';
+    bar.style.height = `${randomBetween(18, 94)}%`;
+    bars.appendChild(bar);
+  }
+}
+
+function animateVisualizer() {
+  document.querySelectorAll('.bar').forEach((bar, index) => {
+    const wave = Math.sin(Date.now() / 220 + index * 0.66) * 22;
+    const jitter = randomBetween(0, soundEnabled ? 48 : 28);
+    bar.style.height = `${Math.max(9, 42 + wave + jitter)}%`;
+  });
+}
+
+function initAudio() {
+  const AudioEngine = window.AudioContext || window.webkitAudioContext;
+  if (!AudioEngine) return null;
+  audioContext ||= new AudioEngine();
+  return audioContext;
+}
+
+function playTone(frequency = 220, duration = 0.08, type = 'sine') {
+  if (!soundEnabled) return;
+  if (!initAudio()) return;
+
+  // Tiny Web Audio tones provide optional subtle UI feedback without requiring audio files.
+  const oscillator = audioContext.createOscillator();
+  const gain = audioContext.createGain();
+  oscillator.type = type;
+  oscillator.frequency.value = frequency;
+  gain.gain.setValueAtTime(0.0001, audioContext.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.035, audioContext.currentTime + 0.012);
+  gain.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + duration);
+  oscillator.connect(gain).connect(audioContext.destination);
+  oscillator.start();
+  oscillator.stop(audioContext.currentTime + duration + 0.02);
+}
+
+function showEgg(message) {
+  easterEgg.textContent = message;
+  easterEgg.classList.add('show');
+  playTone(randomBetween(260, 620), 0.12, 'triangle');
+  clearTimeout(showEgg.timeout);
+  showEgg.timeout = setTimeout(() => easterEgg.classList.remove('show'), 2800);
+}
+
+function triggerAnomaly() {
+  document.body.classList.add('anomaly-mode');
+  anomaly.classList.add('active');
+  orbMood.textContent = 'Awestruck';
+  playTone(110, 0.22, 'sawtooth');
+  setTimeout(() => playTone(440, 0.18, 'triangle'), 140);
+  setTimeout(() => playTone(880, 0.18, 'sine'), 280);
+  setTimeout(() => {
+    anomaly.classList.remove('active');
+    document.body.classList.remove('anomaly-mode');
+    orbMood.textContent = 'Curious';
+  }, 3100);
+}
+
+window.addEventListener('pointermove', (event) => {
+  mouse = { x: event.clientX, y: event.clientY };
+
+  const x = (event.clientX / window.innerWidth - 0.5) * 2;
+  const y = (event.clientY / window.innerHeight - 0.5) * 2;
+  orbWrap.style.setProperty('--orb-x', x.toFixed(3));
+  orbWrap.style.setProperty('--orb-y', y.toFixed(3));
+  orbMood.textContent = Math.abs(x) + Math.abs(y) > 0.95 ? 'Tracking' : 'Curious';
+});
+
+document.querySelectorAll('.glass-panel').forEach((panel) => {
+  panel.addEventListener('pointermove', (event) => {
+    const rect = panel.getBoundingClientRect();
+    panel.style.setProperty('--mx', `${event.clientX - rect.left}px`);
+    panel.style.setProperty('--my', `${event.clientY - rect.top}px`);
+  });
+});
+
+document.querySelectorAll('.magnetic').forEach((item) => {
+  item.addEventListener('pointermove', (event) => {
+    const rect = item.getBoundingClientRect();
+    const x = event.clientX - rect.left - rect.width / 2;
+    const y = event.clientY - rect.top - rect.height / 2;
+    item.style.transform = `translate(${x * 0.04}px, ${y * 0.04}px)`;
+  });
+  item.addEventListener('pointerleave', () => {
+    item.style.transform = '';
+  });
+});
+
+soundToggle.addEventListener('click', async () => {
+  soundEnabled = !soundEnabled;
+  soundToggle.setAttribute('aria-pressed', String(soundEnabled));
+  if (soundEnabled) {
+    if (!initAudio()) {
+      showEgg('Sound FX are not supported by this browser, but the interface is still alive.');
+      return;
+    }
+    if (audioContext.state === 'suspended') await audioContext.resume();
+    playTone(520, 0.12, 'triangle');
+  }
+});
+
+surpriseBtn.addEventListener('click', triggerAnomaly);
+bars.addEventListener('click', () => {
+  showEgg('Visualizer imprint captured. Spectrum intensity boosted.');
+  playTone(740, 0.12, 'square');
+});
+
+document.addEventListener('keydown', (event) => {
+  if (event.repeat) return;
+  heldKeys.add(event.key.toLowerCase());
+
+  if (heldKeys.has('n') && heldKeys.has('p')) {
+    triggerAnomaly();
+    showEgg('NeuroPulse handshake complete. Memory gate synchronized.');
+    return;
+  }
+
+  if (/^[a-z0-9]$/i.test(event.key) && Math.random() > 0.72) {
+    showEgg(eggMessages[randomBetween(0, eggMessages.length - 1)]);
+  }
+});
+
+document.addEventListener('keyup', (event) => heldKeys.delete(event.key.toLowerCase()));
+
+document.addEventListener('click', (event) => {
+  const target = event.target.closest('button, a, .metric-card, .protocol-card');
+  if (target) playTone(randomBetween(320, 760), 0.07, 'triangle');
+});
+
+resizeCanvas();
+buildVisualizer();
+runTypewriter();
+updateMetrics();
+drawParticles();
+setInterval(updateMetrics, 1500);
+setInterval(animateVisualizer, 150);
+window.addEventListener('resize', resizeCanvas);
+
+  </script>
 </body>
 </html>
