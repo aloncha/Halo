@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Halo Solar System | Cinematic 3D Space Experience</title>
+    <meta
+      name="description"
+      content="A cinematic Three.js Solar System simulation with realistic planets, hyperspace travel, NASA-style HUD telemetry, and planetary profiles."
+    />
+    <link rel="preconnect" href="https://unpkg.com" />
+    <link rel="preconnect" href="https://threejs.org" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.164.1/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.164.1/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <main id="experience" aria-label="Interactive cinematic solar system simulation">
+      <canvas id="space-canvas"></canvas>
+
+      <section class="hud hud-top" aria-label="Mission controls">
+        <div>
+          <p class="eyebrow">HALO DEEP SPACE ARRAY</p>
+          <h1>Cinematic Solar System</h1>
+        </div>
+        <div class="hud-actions">
+          <button id="reset-camera" type="button">Reset Flight</button>
+          <button id="toggle-orbits" type="button" aria-pressed="true">Orbit Lines</button>
+        </div>
+      </section>
+
+      <aside class="hud guide-card" aria-label="Interaction guide">
+        <span class="pulse-dot"></span>
+        <strong>Mission Briefing</strong>
+        <p>Drag to orbit, scroll/pinch to zoom, and click any planet to punch through hyperspace into its planetary profile.</p>
+      </aside>
+
+      <section id="planet-panel" class="planet-panel" aria-live="polite" aria-label="Planet characteristics">
+        <button id="close-panel" type="button" aria-label="Close planet profile">×</button>
+        <p class="eyebrow" id="panel-status">Planetary Profile</p>
+        <h2 id="planet-name">Earth</h2>
+        <p id="planet-summary"></p>
+        <dl class="stats-grid">
+          <div><dt>Diameter</dt><dd id="planet-diameter"></dd></div>
+          <div><dt>Distance from Sun</dt><dd id="planet-distance"></dd></div>
+          <div><dt>Orbital Period</dt><dd id="planet-period"></dd></div>
+          <div><dt>Temperature</dt><dd id="planet-temp"></dd></div>
+          <div class="wide"><dt>Atmosphere</dt><dd id="planet-atmosphere"></dd></div>
+          <div class="wide"><dt>Fun Facts</dt><dd id="planet-facts"></dd></div>
+        </dl>
+      </section>
+
+      <div id="hyperspace" aria-hidden="true">
+        <div class="warp-core"></div>
+        <div class="warp-copy">HYPERSPACE VECTOR LOCKED</div>
+      </div>
+
+      <div class="cinema-bars" aria-hidden="true"><span></span><span></span></div>
+      <div id="loading" class="loading">Booting observatory…</div>
+    </main>
+
+    <script type="module" src="./src/app.js"></script>
+  </body>
+</html>
