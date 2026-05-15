@@ -89,6 +89,16 @@ const mats = {
   pid: new THREE.MeshStandardMaterial({ color: 0xf7fbfa, metalness: 0.18, roughness: 0.28 }),
   screen: new THREE.MeshStandardMaterial({ color: 0x1f3238, emissive: 0x224f54, emissiveIntensity: 0.55, roughness: 0.2 })
 };
+const heatFlowMat = new THREE.MeshStandardMaterial({
+  color: 0xffb06a,
+  transparent: true,
+  opacity: 0.12,
+  emissive: 0xff8a3d,
+  emissiveIntensity: 0.18,
+  roughness: 0.72,
+  depthWrite: false,
+  side: THREE.DoubleSide
+});
 
 function addWoodTexture(material){
   const c = document.createElement('canvas'); c.width = 512; c.height = 512;
@@ -177,6 +187,40 @@ for(let i=0;i<46;i++){const m=cyl(.018,.16,mats.blue,{x:0,y:0,z:0},{x:Math.PI/2,
 const pathMat=new THREE.MeshStandardMaterial({color:0x9bc6ff,transparent:true,opacity:.13,emissive:0x407ac0,emissiveIntensity:.08,side:THREE.DoubleSide});
 for(let i=0;i<3;i++){const tor=new THREE.Mesh(new THREE.TorusGeometry(1.15+i*.22,.012,12,90,Math.PI*1.35),pathMat);tor.position.set(.4,.25-i*.22,-.05);tor.rotation.set(Math.PI/2,.1,.25);tor.castShadow=false;airGroup.add(tor);}
 
+// Gentle orange heat-flow visualization from heater to tempe rack
+const heatFlowGroup = new THREE.Group();
+root.add(heatFlowGroup);
+const heatParticles = [];
+const heatStart = new THREE.Vector3(POSITION_CONFIG.heater.x + .16, POSITION_CONFIG.heater.y + .28, POSITION_CONFIG.heater.z + .12);
+const heatEnd = new THREE.Vector3(POSITION_CONFIG.tempeRack.x - .18, POSITION_CONFIG.tempeRack.y + .68, POSITION_CONFIG.tempeRack.z - .08);
+for(let i=0;i<62;i++){
+  const pm = heatFlowMat.clone();
+  pm.opacity = .055 + Math.random() * .055;
+  const m = cyl(.016 + Math.random()*.01, .14 + Math.random()*.07, pm, {x:heatStart.x,y:heatStart.y,z:heatStart.z}, {x:Math.PI/2,y:0,z:0}, 12, heatFlowGroup);
+  m.castShadow = false;
+  m.receiveShadow = false;
+  m.userData.t = Math.random();
+  m.userData.wave = Math.random() * Math.PI * 2;
+  m.userData.lane = Math.random() * 2 - 1;
+  m.userData.lift = .08 + Math.random() * .18;
+  heatParticles.push(m);
+}
+for(let i=0;i<5;i++){
+  const lane = (i - 2) * .11;
+  const curve = new THREE.CatmullRomCurve3([
+    heatStart.clone().add(new THREE.Vector3(lane*.35, 0, lane)),
+    heatStart.clone().lerp(heatEnd, .28).add(new THREE.Vector3(.16*Math.sin(i), .34 + i*.025, lane*.95)),
+    heatStart.clone().lerp(heatEnd, .62).add(new THREE.Vector3(.22*Math.cos(i*.9), .52 + i*.018, -lane*.55)),
+    heatEnd.clone().add(new THREE.Vector3(-lane*.18, .12, lane*.22))
+  ]);
+  const tubeMat = heatFlowMat.clone();
+  tubeMat.opacity = .045 + i * .006;
+  const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, 72, .018 + i*.002, 10, false), tubeMat);
+  tube.castShadow = false;
+  tube.receiveShadow = false;
+  heatFlowGroup.add(tube);
+}
+
 // Soft studio lighting
 scene.add(new THREE.HemisphereLight(0xffffff,0xd7c8b0,1.2));
 const key=new THREE.DirectionalLight(0xffffff,2.0); key.position.set(4,7,5); key.castShadow=true; key.shadow.mapSize.set(2048,2048); key.shadow.camera.near=.5; key.shadow.camera.far=18; key.shadow.camera.left=-7; key.shadow.camera.right=7; key.shadow.camera.top=6; key.shadow.camera.bottom=-6; scene.add(key);
@@ -197,7 +241,20 @@ function animate(){
   heater.children.forEach(o=>{ if(o.userData.pulse!==undefined) o.material.emissiveIntensity=.25+.22*Math.sin(t*3+o.userData.pulse)**2; });
   layerObjects.forEach(m=>{const a=m.userData.explodeAxis, targetOffset=exploded?m.userData.explodeFactor:0; m.position[a]=THREE.MathUtils.lerp(m.position[a],m.userData.base[a]+targetOffset,.08);});
   airGroup.visible=showAir;
+  heatFlowGroup.visible=showAir;
   particles.forEach((p,i)=>{let u=(p.userData.t+t*.09+(i%7)*.02)%1; const ang=u*Math.PI*2; const r=1.08+p.userData.lane*.55; p.position.set(Math.cos(ang)*r+.25, -.05+Math.sin(u*Math.PI*4)*.48, Math.sin(ang)*.78); p.rotation.y=-ang; p.scale.setScalar(.75+.45*Math.sin(u*Math.PI));});
+  heatParticles.forEach((p,i)=>{
+    const u=(p.userData.t+t*.072+(i%9)*.006)%1;
+    const midFade=Math.sin(u*Math.PI);
+    const x=THREE.MathUtils.lerp(heatStart.x,heatEnd.x,u);
+    const y=THREE.MathUtils.lerp(heatStart.y,heatEnd.y,u)+midFade*.55+u*p.userData.lift;
+    const z=THREE.MathUtils.lerp(heatStart.z,heatEnd.z,u);
+    const wave=.16*midFade;
+    p.position.set(x+Math.sin(u*Math.PI*3.2+p.userData.wave)*wave+p.userData.lane*.045, y, z+Math.cos(u*Math.PI*2.7+p.userData.wave)*wave*.72);
+    p.rotation.set(Math.PI/2+.22*Math.sin(t+i), .18*Math.cos(t*.7+i), -u*Math.PI*1.8);
+    p.material.opacity=(.035+.115*midFade)*(showAir?1:0);
+    p.scale.setScalar(.72+.58*midFade);
+  });
   const temp=31.6+Math.sin(t*.55)*.35+Math.sin(t*1.7)*.08, hum=78+Math.sin(t*.42+1)*2.2, pid=42+Math.sin(t*.7)*9, pwm=58+Math.sin(t*.63+2)*12;
   document.getElementById('temp').textContent=temp.toFixed(1)+'°C'; document.getElementById('hum').textContent=hum.toFixed(0)+'%'; document.getElementById('pid').textContent=pid.toFixed(0)+'%'; document.getElementById('pwm').textContent=pwm.toFixed(0)+'%';
   updateCamera(); projectLabels(); renderer.render(scene,camera);
