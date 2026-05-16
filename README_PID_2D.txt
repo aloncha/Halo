@@ -10,7 +10,7 @@ Files
 2) Run APPLOAD.
 3) Load crystallization_area_pid_2d.lsp.
 4) Run command: PIDCRYSTAL2D.
-5) The script automatically creates layers, reusable 2D P&ID blocks, process lines, utility lines, instruments, valves, notes, tables, and a simple ISO A1 landscape border/title block. If an error occurs, a simple error handler restores CMDECHO/OSMODE and prints a PIDCRYSTAL2D-specific message.
+5) The script automatically creates a compact P&ID layout, refreshes reusable 2D block definitions, draws visible process/utility/signal lines, fills line and operating-condition tables, and creates a simple ISO A1 landscape border/title block. If an error occurs, a simple error handler restores CMDECHO/OSMODE and prints a PIDCRYSTAL2D-specific message.
 
 Important limitations
 - This is a conceptual educational 2D P&ID drawing.
