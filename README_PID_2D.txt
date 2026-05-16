@@ -2,7 +2,7 @@ README_PID_2D.txt
 P&ID 2D - Crystallization B/C and Final Molasses Area (Area 302-319)
 
 Files
-- crystallization_area_pid_2d.lsp: AutoLISP script that draws the complete conceptual 2D P&ID in model space.
+- crystallization_area_pid_2d.lsp: AutoLISP script that draws the complete conceptual 2D P&ID in model space. The revised script avoids unsafe `(command ...)` calls by using entity creation/table edits and limited `vl-cmdf` calls for AutoCAD-safe operations.
 - README_PID_2D.txt: usage notes, lists, assumptions, and references.
 
 1. How to run the script
@@ -10,7 +10,7 @@ Files
 2) Run APPLOAD.
 3) Load crystallization_area_pid_2d.lsp.
 4) Run command: PIDCRYSTAL2D.
-5) The script automatically creates layers, reusable 2D P&ID blocks, process lines, utility lines, instruments, valves, notes, tables, and a simple ISO A1 landscape border/title block.
+5) The script automatically creates layers, reusable 2D P&ID blocks, process lines, utility lines, instruments, valves, notes, tables, and a simple ISO A1 landscape border/title block. If an error occurs, a simple error handler restores CMDECHO/OSMODE and prints a PIDCRYSTAL2D-specific message.
 
 Important limitations
 - This is a conceptual educational 2D P&ID drawing.
